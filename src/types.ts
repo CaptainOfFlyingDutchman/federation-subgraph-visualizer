@@ -6,9 +6,12 @@ export type GraphQLModule = {
   sdl: string;
 };
 
+export type XyFlowNode = Node<NodeData>;
+export type XyFlowEdge = Edge<EdgeData>;
+
 export type XyFlowNodesAndEdges = {
-  nodes: Node<NodeData>[];
-  edges: Edge<EdgeData>[];
+  nodes: XyFlowNode[];
+  edges: XyFlowEdge[];
 };
 
 export type TitleBackgroundColor =
