@@ -13,6 +13,7 @@ import {
 import '@xyflow/react/dist/style.css';
 import { customNodeType } from '@/parser/utils';
 import { GraphQLNode } from '@/app/components/GraphQLNode';
+import { SourceDrawer } from '@/app/components/SourceDrawer';
 
 export type GraphQLVisualizerProps = XyFlowNodesAndEdges;
 
@@ -40,6 +41,8 @@ export function GraphQLVisualizer({ nodes, edges }: GraphQLVisualizerProps) {
           <Controls />
         </ReactFlow>
       </div>
+
+      <SourceDrawer />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import {
   type ASTNode,
   type FieldDefinitionNode,
+  type InputObjectTypeDefinitionNode,
   type InterfaceTypeDefinitionNode,
   Kind,
   type NameNode,
@@ -8,7 +9,13 @@ import {
   type ObjectTypeExtensionNode,
   type TypeNode,
 } from 'graphql';
-import type { EdgeData, NodeData } from '@/parser/graphqlToReactFlow';
+import type {
+  EdgeData,
+  FieldSnippets,
+  NodeData,
+  SourceSnippet,
+  TypeSnippets,
+} from '@/parser/graphqlToReactFlow';
 import type { Edge, Node } from '@xyflow/react';
 
 export const customNodeType = 'typeNode';
@@ -163,4 +170,81 @@ export function createProbableEdges(
       }
     });
   }
+}
+
+export function getLineNumberAtOffset(moduleSource: string, offset: number) {
+  if (offset <= 0) {
+    return 1;
+  }
+
+  let count = 1;
+  const textLength = Math.min(offset, moduleSource.length);
+
+  for (let i = 0; i < textLength; i++) {
+    if (moduleSource.charCodeAt(i) === 10) {
+      count += 1;
+    }
+  }
+
+  return count;
+}
+
+export type CollectSourceSnippetForDefinitionFnArgs = {
+  typeSnippets: TypeSnippets;
+  fieldSnippets: FieldSnippets;
+  moduleName: string;
+  body: string;
+  sourceNode: NameNode['value'];
+  astNode:
+    | ObjectTypeDefinitionNode
+    | ObjectTypeExtensionNode
+    | InterfaceTypeDefinitionNode
+    | InputObjectTypeDefinitionNode;
+  snippet: SourceSnippet;
+};
+
+export function collectSourceSnippetForDefinition({
+  fieldSnippets,
+  typeSnippets,
+  moduleName,
+  body,
+  sourceNode,
+  astNode,
+  snippet,
+}: CollectSourceSnippetForDefinitionFnArgs) {
+  if (!typeSnippets.has(sourceNode)) {
+    typeSnippets.set(sourceNode, []);
+  }
+
+  // Add type snippets
+  typeSnippets.get(sourceNode)?.push(snippet);
+
+  // Add field snippets
+  (astNode.fields || []).forEach((field) => {
+    if (!field.loc) {
+      return;
+    }
+
+    const fieldLoc = field.loc;
+    const fieldCode = body.substring(fieldLoc.start, fieldLoc.end);
+    const fieldSnippet: SourceSnippet = {
+      moduleName,
+      code: fieldCode,
+      title: `field ${sourceNode}.${field.name.value}`,
+      startLine: getLineNumberAtOffset(body, fieldLoc.start),
+      endLine: getLineNumberAtOffset(body, fieldLoc.end),
+    };
+
+    if (!fieldSnippets.has(sourceNode)) {
+      fieldSnippets.set(sourceNode, new Map());
+    }
+
+    const fieldSnippetMap = fieldSnippets.get(sourceNode);
+
+    if (!fieldSnippetMap?.has(field.name.value)) {
+      fieldSnippetMap?.set(field.name.value, []);
+    }
+
+    fieldSnippetMap?.get(field.name.value)?.push(fieldSnippet);
+  });
 }

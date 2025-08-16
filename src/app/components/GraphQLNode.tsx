@@ -2,6 +2,8 @@ import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
 import type { NodeData } from '@/parser/graphqlToReactFlow';
 import type { TitleBackgroundColor } from '@/types';
 import { GraphQLNodeFieldRow } from '@/app/components/GraphQLNodeFieldRow';
+import { useSourceContext } from '@/app/components/SourceContext';
+import { useCallback } from 'react';
 
 export type GraphQLNodeProps = NodeProps<Node<NodeData>>;
 
@@ -15,12 +17,24 @@ const titleBackgroundColors: Record<NodeData['kind'], TitleBackgroundColor> = {
 };
 
 export function GraphQLNode({ data }: GraphQLNodeProps) {
-  const { kind, label, fields } = data;
+  const { open } = useSourceContext();
+
+  const { kind, label, fields, sourceSnippets } = data;
   const titleBgColor = titleBackgroundColors[kind];
+
+  const onClick = useCallback(() => {
+    open({
+      nodeName: label,
+      kind: 'type',
+      title: label,
+      snippets: sourceSnippets || [],
+    });
+  }, [label, sourceSnippets, open]);
 
   return (
     <div className="min-w-[200px] border border-gray-300 rounded-md bg-white shadow">
       <button
+        onClick={onClick}
         className={`w-full text-left py-1.5 px-2.5 rounded-t-md text-white font-semibold text-[13px] ${titleBgColor}`}
       >
         {label}
