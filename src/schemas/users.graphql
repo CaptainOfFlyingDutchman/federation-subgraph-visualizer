@@ -1,0 +1,22 @@
+enum Role {
+  ADMIN
+  MODERATOR
+  USER
+  GUEST
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String
+  role: Role!
+  reviews: [Review!]
+}
+
+union SearchResult = User | Product | Review
+
+type Query {
+  user(id: ID!): User
+  users: [User!]!
+  search(term: String!): [SearchResult!]!
+}

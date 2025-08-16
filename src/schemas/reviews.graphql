@@ -1,0 +1,23 @@
+enum ReviewRating {
+  ONE
+  TWO
+  THREE
+  FOUR
+  FIVE
+}
+
+type Review {
+  id: ID!
+  title: String!
+  body: String
+  rating: ReviewRating!
+  author: User!
+  product: Product!
+  createdAt: String!
+}
+
+extend type Query {
+  review(id: ID!): Review
+  reviewsByProduct(productId: ID!): [Review!]!
+  reviewsByUser(userId: ID!): [Review!]!
+}

@@ -1,0 +1,23 @@
+enum ProductCategory {
+  ELECTRONICS
+  BOOKS
+  CLOTHING
+  HOME
+  TOYS
+}
+
+type Product {
+  id: ID!
+  sku: String!
+  name: String!
+  description: String
+  category: ProductCategory!
+  price: Float!
+  reviews: [Review!]
+  createdBy: User
+}
+
+extend type Query {
+  product(id: ID!): Product
+  products(category: ProductCategory): [Product!]!
+}
