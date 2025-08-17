@@ -29,11 +29,13 @@ import {
   createNodesEdge,
   createProbableEdges,
   getLineNumberAtOffset,
+  getNode,
   getNodeKind,
   getTargetNodeName,
   getTypeName,
   getUniqueTypesFromEachModule,
   layoutModuleGroups,
+  markOutgoing,
   mergeNodesAcrossModules,
   pushUnique,
   remapEdgesToNamespaceIds,
@@ -82,27 +84,11 @@ export type EdgeData = {
 export function buildReactFlowFromDocument(
   documentNode: DocumentNode,
 ): BuildReactFlowFromDocumentFnReturn {
-  const nodes: Node<NodeData>[] = [];
-  const edges: Edge<EdgeData>[] = [];
+  const nodes: XyFlowNode[] = [];
+  const edges: XyFlowEdge[] = [];
 
   const typeSnippets: TypeSnippets = new Map();
   const fieldSnippets: FieldSnippets = new Map();
-
-  const getNode = (id: string) => nodes.find((n) => n.id === id);
-
-  const markOutgoing = (
-    sourceNode: NameNode['value'],
-    field: NameNode['value'],
-  ) => {
-    const node = getNode(sourceNode);
-    if (node?.data.fields) {
-      node.data.fields.forEach((f) => {
-        if (f.name === field) {
-          f.hasOutgoing = true;
-        }
-      });
-    }
-  };
 
   visit(documentNode, {
     enter(astNode) {
@@ -137,14 +123,14 @@ export function buildReactFlowFromDocument(
         hasOutgoing: false,
       }));
 
-      const node = getNode(sourceNode);
+      const node = getNode(nodes, sourceNode);
       if (node) {
         node.data.fields = nodeFields;
       }
 
       // TODO: Include interface impl code if required
 
-      createProbableEdges(objectNode, sourceNode, edges, markOutgoing);
+      createProbableEdges(objectNode, sourceNode, nodes, edges);
 
       if (objectNode.loc) {
         const loc = objectNode.loc;
@@ -177,7 +163,7 @@ export function buildReactFlowFromDocument(
       const sourceNode = objectExtensionNode.name.value;
 
       // Ensure Query node exists
-      let queryNode = getNode(sourceNode);
+      let queryNode = getNode(nodes, sourceNode);
       if (!queryNode) {
         queryNode = createNode(sourceNode, 'object');
         pushUnique(nodes, queryNode, (n) => n.id);
@@ -200,7 +186,7 @@ export function buildReactFlowFromDocument(
 
       // TODO: Include interface impl code if required
 
-      createProbableEdges(objectExtensionNode, sourceNode, edges, markOutgoing);
+      createProbableEdges(objectExtensionNode, sourceNode, nodes, edges);
 
       if (objectExtensionNode.loc) {
         const loc = objectExtensionNode.loc;
@@ -243,14 +229,14 @@ export function buildReactFlowFromDocument(
         }),
       );
 
-      const existingInterfaceNode = getNode(sourceNode);
+      const existingInterfaceNode = getNode(nodes, sourceNode);
       if (existingInterfaceNode) {
         existingInterfaceNode.data.fields = interfaceFields;
       }
 
       if (interfaceNode.fields) {
         interfaceNode.fields.forEach((field) => {
-          createNodesEdge(field, sourceNode, edges, markOutgoing);
+          createNodesEdge(field, sourceNode, nodes, edges);
         });
       }
 
@@ -311,7 +297,7 @@ export function buildReactFlowFromDocument(
         hasOutgoing: false,
       }));
 
-      const existingInputNode = getNode(sourceNode);
+      const existingInputNode = getNode(nodes, sourceNode);
       if (existingInputNode) {
         existingInputNode.data.fields = inputFields;
       }
@@ -337,7 +323,7 @@ export function buildReactFlowFromDocument(
             (e) => e.id,
           );
 
-          markOutgoing(sourceNode, field.name.value);
+          markOutgoing(nodes, sourceNode, field.name.value);
         });
       }
 
@@ -374,7 +360,7 @@ export function buildReactFlowFromDocument(
         name: value.name.value,
       }));
 
-      const existingEnumNode = getNode(sourceNode);
+      const existingEnumNode = getNode(nodes, sourceNode);
       if (existingEnumNode) {
         existingEnumNode.data = {
           ...existingEnumNode.data,

@@ -102,11 +102,8 @@ export function getTargetNodeName(typeNode: TypeNode): string {
 export function createNodesEdge(
   field: FieldDefinitionNode,
   sourceNode: NameNode['value'],
-  edges: Edge<EdgeData>[],
-  markOutgoing: (
-    sourceNode: NameNode['value'],
-    field: NameNode['value'],
-  ) => void,
+  nodes: XyFlowNode[],
+  edges: XyFlowEdge[],
 ) {
   const targetNode = getTargetNodeName(field.type);
 
@@ -128,7 +125,7 @@ export function createNodesEdge(
       (e) => e.id,
     );
 
-    markOutgoing(sourceNode, field.name.value);
+    markOutgoing(nodes, sourceNode, field.name.value);
   }
 }
 
@@ -138,17 +135,14 @@ export function createProbableEdges(
     | ObjectTypeExtensionNode
     | InterfaceTypeDefinitionNode,
   sourceNode: NameNode['value'],
-  edges: Edge<EdgeData>[],
-  markOutgoing: (
-    sourceNode: NameNode['value'],
-    field: NameNode['value'],
-  ) => void,
+  nodes: XyFlowNode[],
+  edges: XyFlowEdge[],
 ) {
   if (objectNode.fields) {
     // Create edge even if the target node isn't present in this document;
     // maybe resolved across other graphql modules
     objectNode.fields.forEach((field) => {
-      createNodesEdge(field, sourceNode, edges, markOutgoing);
+      createNodesEdge(field, sourceNode, nodes, edges);
 
       if (field.arguments) {
         field.arguments.forEach((argument) => {
@@ -176,7 +170,7 @@ export function createProbableEdges(
             (e) => e.id,
           );
 
-          markOutgoing(sourceNode, field.name.value);
+          markOutgoing(nodes, sourceNode, field.name.value);
         });
       }
     });
@@ -198,6 +192,28 @@ export function getLineNumberAtOffset(moduleSource: string, offset: number) {
   }
 
   return count;
+}
+
+export function getNode(
+  nodes: XyFlowNode[],
+  id: string,
+): Node<NodeData> | undefined {
+  return nodes.find((n) => n.id === id);
+}
+
+export function markOutgoing(
+  nodes: XyFlowNode[],
+  sourceNode: NameNode['value'],
+  field: NameNode['value'],
+): void {
+  const node = getNode(nodes, sourceNode);
+  if (node?.data.fields) {
+    node.data.fields.forEach((f) => {
+      if (f.name === field) {
+        f.hasOutgoing = true;
+      }
+    });
+  }
 }
 
 export type CollectSourceSnippetForDefinitionFnArgs = {
