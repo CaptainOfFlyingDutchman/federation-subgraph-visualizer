@@ -40,7 +40,7 @@ export function SourceDrawer() {
           onClick={close}
           className="text-sm text-zinc-600 hover:text-zinc-900 hover:cursor-pointer"
         >
-          Close
+          Close/Esc
         </button>
       </div>
 
