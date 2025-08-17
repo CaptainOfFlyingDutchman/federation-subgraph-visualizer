@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Federation Subgraph Visualizer
 
-## Getting Started
+A small Next.js app that visualizes GraphQL SDL across multiple modules ("subgraphs").
 
-First, run the development server:
+- Reads all .graphql files from `src/schemas` at runtime
+- Parses types, fields, arguments, unions, interfaces, enums, inputs, and scalars
+- Groups nodes by module (filename) and draws edges where types reference each other
+- Lets you view source snippets for types and fields
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Prerequisites
+
+- Node.js 18+ (20 LTS recommended)
+- A package manager: npm (bundled with Node)
+
+## Setup
+
+1. Install dependencies
+   - npm install
+2. Ensure your GraphQL SDL files are in src/schemas (see Data format below).
+
+## Data format
+
+Place one or more GraphQL SDL files with the .graphql extension in `src/schemas`.
+Each file is treated as a separate module/subgraph. The module name is the filename without the extension.
+
+- Supported SDL constructs: type, interface, union, enum, input, scalar, and type extensions.
+- Cross-module references are supported. For example, a type in users.graphql can reference Product defined in product.graphql.
+- File loading order: users.graphql (if present) is loaded first, then all other .graphql files.
+
+Example: src/schemas/users.graphql
+
+```graphql
+enum Role {
+  ADMIN
+  MODERATOR
+  USER
+  GUEST
+}
+
+type User {
+  id: ID!
+  name: String!
+  email: String
+  role: Role!
+  reviews: [Review!]
+}
+
+union SearchResult = User | Product | Review
+
+type Query {
+  user(id: ID!): User
+  users: [User!]!
+  search(term: String!): [SearchResult!]!
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You can add more modules, e.g., src/schemas/product.graphql:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```graphql
+type Product {
+  id: ID!
+  name: String!
+}
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+and src/schemas/reviews.graphql:
 
-## Learn More
+```graphql
+type Review {
+  id: ID!
+  body: String!
+  author: User
+  product: Product
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+The visualizer will render module groups and draw edges based on field and argument types (e.g., Review.author -> User, Review.product -> Product).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Run locally
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Start the development server
+   - npm run dev
+2. Open http://localhost:3000 in your browser
+3. Edit or add .graphql files in src/schemas and refresh. The app will load all .graphql files at request time.
 
-## Deploy on Vercel
+## Build and run (production)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- npm run build && npm start
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Notes and tips
+
+- Module grouping is based on filenames; rename files to change group labels.
+
+## Troubleshooting
+
+- Port already in use: set PORT=3001 (or any free port) before the command, e.g. `PORT=3001 npm run dev`.
+- Changes are not visible: ensure your .graphql files are saved in src/schemas and refresh the page.
+- Node version issues: upgrade to Node 18 or 20 LTS.
