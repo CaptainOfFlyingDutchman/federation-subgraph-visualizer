@@ -19,6 +19,7 @@ import type {
 } from '@/types';
 import {
   applyOutgoingFlagsToNodes,
+  attachSnippetsToMergedNodes,
   buildGroupsForModules,
   collectSourceSnippetForDefinition,
   computeFieldOutgoingFlags,
@@ -545,6 +546,12 @@ export function buildReactFlowFromGraphQLModules(
 
   const { mergedNodesAcrossModules } =
     mergeNodesAcrossModules(transformedModules);
+
+  attachSnippetsToMergedNodes({
+    mergedNodesAcrossModules,
+    mergedTypeSnippets,
+    mergedFieldSnippets,
+  });
 
   const graphqlModulesGroups = graphqlModules.map((graphModule) =>
     buildGroupsForModules({

@@ -1,7 +1,7 @@
 'use client';
 
 import { useSourceContext } from '@/components/sourceViewer/SourceContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SourceViewer } from '@/components/sourceViewer/SourceViewer';
 import { useOnKeyDown } from '@/hooks/useOnKeyDown';
 
@@ -11,6 +11,10 @@ export function SourceDrawer() {
   useOnKeyDown('Escape', close);
 
   const [activeTab, setActiveTab] = useState(0);
+
+  useEffect(() => {
+    setActiveTab(0);
+  }, [current?.fieldName, current?.nodeName]);
 
   if (!current || !isOpen) {
     return null;

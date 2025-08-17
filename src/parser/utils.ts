@@ -13,6 +13,7 @@ import type {
   EdgeData,
   FieldSnippets,
   NodeData,
+  NodeField,
   SourceSnippet,
   TypeSnippets,
 } from '@/parser/graphqlToReactFlow';
@@ -312,6 +313,32 @@ export function mergeNodesAcrossModules(
   return {
     mergedNodesAcrossModules: merged,
   };
+}
+
+export type AttachSnippetsToMergedNodesFnArgs = {
+  mergedNodesAcrossModules: MergeNodesAcrossModulesFnReturn['mergedNodesAcrossModules'];
+  mergedTypeSnippets: TypeSnippets;
+  mergedFieldSnippets: FieldSnippets;
+};
+
+export function attachSnippetsToMergedNodes({
+  mergedNodesAcrossModules,
+  mergedTypeSnippets,
+  mergedFieldSnippets,
+}: AttachSnippetsToMergedNodesFnArgs) {
+  mergedNodesAcrossModules.forEach((node, typeName) => {
+    node.data.sourceSnippets = mergedTypeSnippets.get(typeName) || [];
+
+    const fieldSnippetMap = mergedFieldSnippets.get(typeName);
+    if (fieldSnippetMap) {
+      const originalFields = node.data.fields || [];
+
+      node.data.fields = originalFields.map<NodeField>((field) => ({
+        ...field,
+        sourceSnippets: fieldSnippetMap.get(field.name) || [],
+      }));
+    }
+  });
 }
 
 export type BuildGroupsForModulesFnArgs = {
