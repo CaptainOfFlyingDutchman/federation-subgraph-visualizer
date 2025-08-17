@@ -28,6 +28,7 @@ export function SourceViewer({
   return (
     <pre
       ref={ref}
+      aria-label="GraphQL source code"
       className={`text-xs leading-5 rounded border border-zinc-800 overflow-auto p-3 ${showLineNumbers ? 'line-numbers' : ''}`}
       data-start={startLine}
     >

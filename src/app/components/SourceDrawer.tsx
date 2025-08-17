@@ -3,9 +3,12 @@
 import { useSourceContext } from '@/app/components/SourceContext';
 import { useState } from 'react';
 import { SourceViewer } from '@/app/components/SourceViewer';
+import { useOnKeyDown } from '@/app/hooks/useOnKeyDown';
 
 export function SourceDrawer() {
   const { close, current, isOpen } = useSourceContext();
+
+  useOnKeyDown('Escape', close);
 
   const [activeTab, setActiveTab] = useState(0);
 
@@ -16,9 +19,17 @@ export function SourceDrawer() {
   const snippets = current.snippets;
 
   return (
-    <div className="fixed z-50 right-0 top-0 h-full w-[600px] max-w-[85vw] bg-white shadow-xl border-l border-zinc-200 flex flex-col">
+    <aside
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="source-drawer-title"
+      className="fixed z-50 right-0 top-0 h-full w-[600px] max-w-[85vw] bg-white shadow-xl border-l border-zinc-200 flex flex-col"
+    >
       <div className="p-3 border-b border-zinc-200 flex items-center justify-between">
-        <p className="font-semibold text-sm text-zinc-800 truncate">
+        <p
+          id="source-drawer-title"
+          className="font-semibold text-sm text-zinc-800 truncate"
+        >
           {current.title}
         </p>
         <button
@@ -68,6 +79,6 @@ export function SourceDrawer() {
           />
         )}
       </div>
-    </div>
+    </aside>
   );
 }
