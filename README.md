@@ -96,3 +96,7 @@ The visualizer will render module groups and draw edges based on field and argum
 - Port already in use: set PORT=3001 (or any free port) before the command, e.g. `PORT=3001 npm run dev`.
 - Changes are not visible: ensure your .graphql files are saved in src/schemas and refresh the page.
 - Node version issues: upgrade to Node 18 or 20 LTS.
+
+
+## Screenshot
+![screenshot.png](screenshot.png)
