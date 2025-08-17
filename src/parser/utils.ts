@@ -391,8 +391,6 @@ export function buildGroupsForModules({
     .filter(([_, moduleName]) => moduleName === graphModule.name)
     .map(([type]) => type);
 
-  console.log(ownedTypes);
-
   const baseChildNodesWithModuleMappedIds = ownedTypes.map((typeName) => {
     const mergedNode = mergedNodesAcrossModules.get(typeName)!;
 

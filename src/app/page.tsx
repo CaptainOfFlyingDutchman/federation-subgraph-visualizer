@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { readdir, readFile } from 'node:fs/promises';
 import { buildReactFlowFromGraphQLModules } from '@/parser/graphqlToReactFlow';
-import type { FieldSnippets, GraphQLModule, SourceSnippet } from '@/types';
+import type { GraphQLModule } from '@/types';
 import { GraphQLVisualizer } from '@/components/xyflow/GraphQLVisualizer';
 import { SourceProvider } from '@/components/sourceViewer/SourceContext';
 
@@ -32,37 +32,9 @@ export default async function GraphQLDSLVisualizer() {
   const graphQLModules = await readSDLs();
   const graphNodes = buildReactFlowFromGraphQLModules(graphQLModules);
 
-  // console.log(
-  //   'Graph::: typeSnippets ',
-  //   JSON.stringify(Array.from(graphNodes[0].typeSnippets), null, 2),
-  // );
-  //
-  // console.log(
-  //   'Graph::: fieldSnippets',
-  //   JSON.stringify(deepMapToObject(graphNodes[0].fieldSnippets), null, 2),
-  // );
-
-  console.log({
-    nodes: graphNodes.nodes,
-    edges: graphNodes.edges,
-  });
-
   return (
     <SourceProvider>
       <GraphQLVisualizer nodes={graphNodes.nodes} edges={graphNodes.edges} />
     </SourceProvider>
   );
-}
-
-// Debug utils
-function mapToObject<V>(map: Map<string, V>): Record<string, V> {
-  return Object.fromEntries(map);
-}
-
-function deepMapToObject(snippets: FieldSnippets) {
-  const obj: Record<string, Record<string, SourceSnippet[]>> = {};
-  for (const [typeName, fieldMap] of snippets.entries()) {
-    obj[typeName] = mapToObject(fieldMap);
-  }
-  return obj;
 }
