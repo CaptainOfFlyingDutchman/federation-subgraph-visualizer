@@ -7,7 +7,6 @@ import {
   type TypeDefinitionNode,
   visit,
 } from 'graphql';
-import type { Edge, Node } from '@xyflow/react';
 
 import type {
   BuildReactFlowFromDocumentFnReturn,
@@ -21,26 +20,24 @@ import {
   applyOutgoingFlagsToNodes,
   attachSnippetsToMergedNodes,
   buildGroupsForModules,
-  collectSourceSnippetForDefinition,
   computeFieldOutgoingFlags,
   computeGroupEdges,
-  createEdgeId,
   createNode,
-  createNodesEdge,
-  createProbableEdges,
-  getLineNumberAtOffset,
-  getNode,
   getNodeKind,
-  getTargetNodeName,
-  getTypeName,
   getUniqueTypesFromEachModule,
   layoutModuleGroups,
-  markOutgoing,
   mergeNodesAcrossModules,
   pushUnique,
   remapEdgesToNamespaceIds,
 } from '@/parser/utils';
 import { DagreLayoutOptions } from '@/parser/dagre';
+import { getObjectTypeDefinition } from '@/parser/visitors/objectTypeDefinition';
+import { getObjectTypeExtension } from '@/parser/visitors/objectTypeExtension';
+import { getInterfaceTypeDefinition } from '@/parser/visitors/interfaceTypeDefinition';
+import { getUnionTypeDefinition } from '@/parser/visitors/unionTypeDefinition';
+import { getInputObjectTypeDefinition } from '@/parser/visitors/inputObjectTypeDefinition';
+import { getEnumTypeDefinition } from '@/parser/visitors/enumTypeDefinition';
+import { getScalarTypeDefinition } from '@/parser/visitors/scalarTypeDefinition';
 
 export type SourceSnippet = {
   moduleName: GraphQLModule['name'];
@@ -109,340 +106,44 @@ export function buildReactFlowFromDocument(
   });
 
   visit(documentNode, {
-    // TODO: Move each visitor to a separate file
-    ObjectTypeDefinition(objectNode) {
-      const sourceNode = objectNode.name.value;
-
-      const nodeFields = (objectNode.fields || []).map<NodeField>((field) => ({
-        name: field.name.value,
-        type: getTypeName(field.type),
-        args: (field.arguments || []).map((argument) => ({
-          name: argument.name.value,
-          type: getTypeName(argument.type),
-        })),
-        hasOutgoing: false,
-      }));
-
-      const node = getNode(nodes, sourceNode);
-      if (node) {
-        node.data.fields = nodeFields;
-      }
-
-      // TODO: Include interface impl code if required
-
-      createProbableEdges(objectNode, sourceNode, nodes, edges);
-
-      if (objectNode.loc) {
-        const loc = objectNode.loc;
-        const body = loc.source.body;
-        const moduleName = loc.source.name;
-        const code = body.substring(loc.start, loc.end);
-
-        const snippet: SourceSnippet = {
-          moduleName,
-          code,
-          title: `type ${sourceNode}`,
-          startLine: getLineNumberAtOffset(body, loc.start),
-          endLine: getLineNumberAtOffset(body, loc.end),
-        };
-
-        collectSourceSnippetForDefinition({
-          typeSnippets,
-          fieldSnippets,
-          moduleName,
-          body,
-          sourceNode,
-          astNode: objectNode,
-          snippet,
-        });
-      }
-    },
+    ObjectTypeDefinition: getObjectTypeDefinition({
+      nodes,
+      edges,
+      typeSnippets,
+      fieldSnippets,
+    }),
 
     // Handle extensions to merge additional fields and edges (e.g., extend type Query)
-    ObjectTypeExtension(objectExtensionNode) {
-      const sourceNode = objectExtensionNode.name.value;
+    ObjectTypeExtension: getObjectTypeExtension({
+      nodes,
+      edges,
+      typeSnippets,
+      fieldSnippets,
+    }),
 
-      // Ensure Query node exists
-      let queryNode = getNode(nodes, sourceNode);
-      if (!queryNode) {
-        queryNode = createNode(sourceNode, 'object');
-        pushUnique(nodes, queryNode, (n) => n.id);
-      }
+    InterfaceTypeDefinition: getInterfaceTypeDefinition({
+      nodes,
+      edges,
+      typeSnippets,
+      fieldSnippets,
+    }),
 
-      const existingFields = queryNode.data.fields || [];
-      const newFields = (objectExtensionNode.fields || []).map<NodeField>(
-        (field) => ({
-          name: field.name.value,
-          type: getTypeName(field.type),
-          args: (field.arguments || []).map((argument) => ({
-            name: argument.name.value,
-            type: getTypeName(argument.type),
-          })),
-          hasOutgoing: false,
-        }),
-      );
+    UnionTypeDefinition: getUnionTypeDefinition({ edges }),
 
-      queryNode.data.fields = [...existingFields, ...newFields];
+    InputObjectTypeDefinition: getInputObjectTypeDefinition({
+      nodes,
+      edges,
+      typeSnippets,
+      fieldSnippets,
+    }),
 
-      // TODO: Include interface impl code if required
+    EnumTypeDefinition: getEnumTypeDefinition({
+      nodes,
+      typeSnippets,
+      fieldSnippets,
+    }),
 
-      createProbableEdges(objectExtensionNode, sourceNode, nodes, edges);
-
-      if (objectExtensionNode.loc) {
-        const loc = objectExtensionNode.loc;
-        const body = loc.source.body;
-        const moduleName = loc.source.name;
-        const code = body.substring(loc.start, loc.end);
-
-        const snippet: SourceSnippet = {
-          moduleName,
-          code,
-          title: `extend type ${sourceNode}`,
-          startLine: getLineNumberAtOffset(body, loc.start),
-          endLine: getLineNumberAtOffset(body, loc.end),
-        };
-
-        collectSourceSnippetForDefinition({
-          typeSnippets,
-          fieldSnippets,
-          moduleName,
-          body,
-          sourceNode,
-          astNode: objectExtensionNode,
-          snippet,
-        });
-      }
-    },
-
-    InterfaceTypeDefinition(interfaceNode) {
-      const sourceNode = interfaceNode.name.value;
-
-      const interfaceFields = (interfaceNode.fields || []).map<NodeField>(
-        (field) => ({
-          name: field.name.value,
-          type: getTypeName(field.type),
-          args: (field.arguments || []).map((argument) => ({
-            name: argument.name.value,
-            type: getTypeName(argument.type),
-          })),
-          hasOutgoing: false,
-        }),
-      );
-
-      const existingInterfaceNode = getNode(nodes, sourceNode);
-      if (existingInterfaceNode) {
-        existingInterfaceNode.data.fields = interfaceFields;
-      }
-
-      if (interfaceNode.fields) {
-        interfaceNode.fields.forEach((field) => {
-          createNodesEdge(field, sourceNode, nodes, edges);
-        });
-      }
-
-      if (interfaceNode.loc) {
-        const loc = interfaceNode.loc;
-        const body = loc.source.body;
-        const moduleName = loc.source.name;
-        const code = body.substring(loc.start, loc.end);
-
-        const snippet: SourceSnippet = {
-          moduleName,
-          code,
-          title: `interface ${sourceNode}`,
-          startLine: getLineNumberAtOffset(body, loc.start),
-          endLine: getLineNumberAtOffset(body, loc.end),
-        };
-
-        collectSourceSnippetForDefinition({
-          typeSnippets,
-          fieldSnippets,
-          moduleName,
-          body,
-          sourceNode,
-          astNode: interfaceNode,
-          snippet,
-        });
-      }
-    },
-
-    UnionTypeDefinition(unionNode) {
-      const sourceNode = unionNode.name.value;
-
-      if (unionNode.types) {
-        unionNode.types.forEach((member) => {
-          const targetNode = member.name.value;
-
-          pushUnique(
-            edges,
-            {
-              id: createEdgeId(sourceNode, targetNode, 'member'),
-              source: sourceNode,
-              target: targetNode,
-              animated: true,
-              data: { relation: 'member' },
-            },
-            (e) => e.id,
-          );
-        });
-      }
-    },
-
-    InputObjectTypeDefinition(inputNode) {
-      const sourceNode = inputNode.name.value;
-
-      const inputFields = (inputNode.fields || []).map<NodeField>((field) => ({
-        name: field.name.value,
-        type: getTypeName(field.type),
-        hasOutgoing: false,
-      }));
-
-      const existingInputNode = getNode(nodes, sourceNode);
-      if (existingInputNode) {
-        existingInputNode.data.fields = inputFields;
-      }
-
-      if (inputNode.fields) {
-        inputNode.fields.forEach((field) => {
-          const targetNode = getTargetNodeName(field.type);
-
-          pushUnique(
-            edges,
-            {
-              id: createEdgeId(sourceNode, targetNode, 'inputField'),
-              source: sourceNode,
-              target: targetNode,
-              animated: true,
-              sourceHandle: `field-${field.name.value}`,
-              data: {
-                relation: 'inputField',
-                field: field.name.value,
-                type: getTypeName(field.type),
-              },
-            },
-            (e) => e.id,
-          );
-
-          markOutgoing(nodes, sourceNode, field.name.value);
-        });
-      }
-
-      if (inputNode.loc) {
-        const loc = inputNode.loc;
-        const body = loc.source.body;
-        const moduleName = loc.source.name;
-        const code = body.substring(loc.start, loc.end);
-
-        const snippet: SourceSnippet = {
-          moduleName,
-          code,
-          title: `input ${sourceNode}`,
-          startLine: getLineNumberAtOffset(body, loc.start),
-          endLine: getLineNumberAtOffset(body, loc.end),
-        };
-
-        collectSourceSnippetForDefinition({
-          typeSnippets,
-          fieldSnippets,
-          moduleName,
-          body,
-          sourceNode,
-          astNode: inputNode,
-          snippet,
-        });
-      }
-    },
-
-    EnumTypeDefinition(enumNode) {
-      const sourceNode = enumNode.name.value;
-
-      const enumValues = (enumNode.values || []).map<NodeField>((value) => ({
-        name: value.name.value,
-      }));
-
-      const existingEnumNode = getNode(nodes, sourceNode);
-      if (existingEnumNode) {
-        existingEnumNode.data = {
-          ...existingEnumNode.data,
-          fields: enumValues,
-        };
-      }
-
-      if (enumNode.loc) {
-        const loc = enumNode.loc;
-        const body = loc.source.body;
-        const moduleName = loc.source.name;
-        const code = body.substring(loc.start, loc.end);
-
-        const snippet: SourceSnippet = {
-          moduleName,
-          code,
-          title: `enum ${sourceNode}`,
-          startLine: getLineNumberAtOffset(body, loc.start),
-          endLine: getLineNumberAtOffset(body, loc.end),
-        };
-
-        if (!typeSnippets.has(sourceNode)) {
-          typeSnippets.set(sourceNode, []);
-        }
-
-        typeSnippets.get(sourceNode)?.push(snippet);
-
-        (enumNode.values || []).forEach((value) => {
-          if (!value.loc) {
-            return;
-          }
-
-          const valueLoc = value.loc;
-          const valueCode = body.substring(valueLoc.start, valueLoc.end);
-          const valueSnippet: SourceSnippet = {
-            moduleName,
-            code: valueCode,
-            title: `enum ${sourceNode}.${value.name.value}`,
-            startLine: getLineNumberAtOffset(body, valueLoc.start),
-            endLine: getLineNumberAtOffset(body, valueLoc.end),
-          };
-
-          if (!fieldSnippets.has(sourceNode)) {
-            fieldSnippets.set(sourceNode, new Map());
-          }
-
-          const fieldSnippetsMap = fieldSnippets.get(sourceNode);
-
-          if (!fieldSnippetsMap?.has(value.name.value)) {
-            fieldSnippetsMap?.set(value.name.value, []);
-          }
-
-          fieldSnippetsMap?.get(value.name.value)?.push(valueSnippet);
-        });
-      }
-    },
-
-    ScalarTypeDefinition(scalarNode) {
-      if (!scalarNode.loc) {
-        return;
-      }
-
-      const sourceNode = scalarNode.name.value;
-      const loc = scalarNode.loc;
-      const body = loc.source.body;
-      const moduleName = loc.source.name;
-      const code = body.substring(loc.start, loc.end);
-
-      const snippet: SourceSnippet = {
-        moduleName,
-        code,
-        title: `scalar ${sourceNode}`,
-        startLine: getLineNumberAtOffset(body, loc.start),
-        endLine: getLineNumberAtOffset(body, loc.end),
-      };
-
-      if (!typeSnippets.has(sourceNode)) {
-        typeSnippets.set(sourceNode, []);
-      }
-
-      typeSnippets.get(sourceNode)?.push(snippet);
-    },
+    ScalarTypeDefinition: getScalarTypeDefinition({ typeSnippets }),
   });
 
   nodes.forEach((node) => {
