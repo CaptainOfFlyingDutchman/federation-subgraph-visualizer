@@ -6,8 +6,8 @@ import {
   SourceSnippet,
 } from '@/parser/graphqlToReactFlow';
 import { type GraphQLModule } from '@/types';
-import { GraphQLVisualizer } from '@/app/components/GraphQLVisualizer';
-import { SourceProvider } from '@/app/components/SourceContext';
+import { GraphQLVisualizer } from '@/components/xyflow/GraphQLVisualizer';
+import { SourceProvider } from '@/components/sourceViewer/SourceContext';
 
 async function readSDLs() {
   const schemasDir = path.join(process.cwd(), 'src', 'schemas');

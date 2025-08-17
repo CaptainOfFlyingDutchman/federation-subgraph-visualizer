@@ -1,6 +1,6 @@
 import type { NodeData, NodeField } from '@/parser/graphqlToReactFlow';
 import { Handle, Position } from '@xyflow/react';
-import { useSourceContext } from '@/app/components/SourceContext';
+import { useSourceContext } from '@/components/sourceViewer/SourceContext';
 import { useCallback } from 'react';
 
 export type GraphQLNodeFieldRowProps = {

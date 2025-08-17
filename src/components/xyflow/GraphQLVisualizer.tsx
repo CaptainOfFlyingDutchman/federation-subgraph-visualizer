@@ -12,8 +12,8 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { customNodeType } from '@/parser/utils';
-import { GraphQLNode } from '@/app/components/GraphQLNode';
-import { SourceDrawer } from '@/app/components/SourceDrawer';
+import { GraphQLNode } from '@/components/xyflow/GraphQLNode';
+import { SourceDrawer } from '@/components/sourceViewer/SourceDrawer';
 
 export type GraphQLVisualizerProps = XyFlowNodesAndEdges;
 

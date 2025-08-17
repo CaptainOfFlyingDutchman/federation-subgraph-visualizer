@@ -1,9 +1,9 @@
 'use client';
 
-import { useSourceContext } from '@/app/components/SourceContext';
+import { useSourceContext } from '@/components/sourceViewer/SourceContext';
 import { useState } from 'react';
-import { SourceViewer } from '@/app/components/SourceViewer';
-import { useOnKeyDown } from '@/app/hooks/useOnKeyDown';
+import { SourceViewer } from '@/components/sourceViewer/SourceViewer';
+import { useOnKeyDown } from '@/hooks/useOnKeyDown';
 
 export function SourceDrawer() {
   const { close, current, isOpen } = useSourceContext();
