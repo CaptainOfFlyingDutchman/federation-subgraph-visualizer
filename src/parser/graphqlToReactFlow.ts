@@ -1,17 +1,16 @@
 import {
   type DocumentNode,
-  Location,
-  type NameNode,
   parse,
-  Source,
   type TypeDefinitionNode,
   visit,
 } from 'graphql';
 
 import type {
   BuildReactFlowFromDocumentFnReturn,
+  FieldSnippets,
   GraphQLModule,
   TransformedGraphQLModules,
+  TypeSnippets,
   XyFlowEdge,
   XyFlowGroupNode,
   XyFlowNode,
@@ -38,45 +37,6 @@ import { getUnionTypeDefinition } from '@/parser/visitors/unionTypeDefinition';
 import { getInputObjectTypeDefinition } from '@/parser/visitors/inputObjectTypeDefinition';
 import { getEnumTypeDefinition } from '@/parser/visitors/enumTypeDefinition';
 import { getScalarTypeDefinition } from '@/parser/visitors/scalarTypeDefinition';
-
-export type SourceSnippet = {
-  moduleName: GraphQLModule['name'];
-  startLine: Location['start'];
-  endLine: Location['end'];
-  code: Source['body'];
-  title?: NameNode['value'];
-};
-
-export type FieldMap = Map<string, SourceSnippet[]>; // fieldName -> snippets
-export type TypeSnippets = Map<string, SourceSnippet[]>; // typeName -> snippets
-export type FieldSnippets = Map<string, FieldMap>; // typeName -> (field -> snippets)
-
-export type FieldArg = {
-  name: NameNode['value'];
-  type: string;
-};
-
-export type NodeField = {
-  name: NameNode['value'];
-  type?: string;
-  args?: FieldArg[];
-  hasOutgoing?: boolean;
-  sourceSnippets?: SourceSnippet[];
-};
-
-export type NodeData = {
-  label: string;
-  kind: 'object' | 'interface' | 'union' | 'input' | 'enum' | 'scalar';
-  fields?: NodeField[]; // for enum, fields can represent enum values as names
-  sourceSnippets?: SourceSnippet[]; // where the type itself is defined
-};
-
-export type EdgeData = {
-  relation?: 'field' | 'argument' | 'member' | 'inputField';
-  field?: NameNode['value'];
-  type?: string;
-  argument?: NameNode['value'];
-};
 
 export function buildReactFlowFromDocument(
   documentNode: DocumentNode,

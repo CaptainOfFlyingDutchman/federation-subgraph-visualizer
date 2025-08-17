@@ -7,9 +7,9 @@ import {
   getTypeName,
   pushUnique,
 } from '@/parser/utils';
-import { NodeField, SourceSnippet } from '@/parser/graphqlToReactFlow';
-import { ObjectTypeExtensionNode } from 'graphql/language/ast';
-import { VisitorFnArgs } from '@/parser/visitors/types';
+import type { ObjectTypeExtensionNode } from 'graphql';
+import type { VisitorFnArgs } from '@/parser/visitors/types';
+import type { NodeField, SourceSnippet } from '@/types';
 
 export function getObjectTypeExtension({
   nodes,

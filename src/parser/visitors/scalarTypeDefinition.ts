@@ -1,7 +1,7 @@
-import { VisitorFnArgs } from '@/parser/visitors/types';
+import type { VisitorFnArgs } from '@/parser/visitors/types';
 import { getLineNumberAtOffset } from '@/parser/utils';
-import { SourceSnippet } from '@/parser/graphqlToReactFlow';
-import { ScalarTypeDefinitionNode } from 'graphql/language';
+import type { ScalarTypeDefinitionNode } from 'graphql';
+import type { SourceSnippet } from '@/types';
 
 export function getScalarTypeDefinition({
   typeSnippets,

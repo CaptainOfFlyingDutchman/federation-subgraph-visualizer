@@ -1,11 +1,10 @@
-import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
-import type { NodeData } from '@/parser/graphqlToReactFlow';
-import type { TitleBackgroundColor } from '@/types';
+import { Handle, type NodeProps, Position } from '@xyflow/react';
+import type { NodeData, TitleBackgroundColor, XyFlowNode } from '@/types';
 import { GraphQLNodeFieldRow } from '@/components/xyflow/GraphQLNodeFieldRow';
 import { useSourceContext } from '@/components/sourceViewer/SourceContext';
 import { useCallback } from 'react';
 
-export type GraphQLNodeProps = NodeProps<Node<NodeData>>;
+export type GraphQLNodeProps = NodeProps<XyFlowNode>;
 
 const titleBackgroundColors: Record<NodeData['kind'], TitleBackgroundColor> = {
   object: 'bg-blue-600',

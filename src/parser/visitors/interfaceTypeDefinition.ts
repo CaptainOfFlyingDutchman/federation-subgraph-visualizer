@@ -1,4 +1,4 @@
-import { VisitorFnArgs } from '@/parser/visitors/types';
+import type { VisitorFnArgs } from '@/parser/visitors/types';
 import {
   collectSourceSnippetForDefinition,
   createNodesEdge,
@@ -6,8 +6,8 @@ import {
   getNode,
   getTypeName,
 } from '@/parser/utils';
-import { NodeField, SourceSnippet } from '@/parser/graphqlToReactFlow';
-import { InterfaceTypeDefinitionNode } from 'graphql';
+import type { InterfaceTypeDefinitionNode } from 'graphql';
+import type { NodeField, SourceSnippet } from '@/types';
 
 export function getInterfaceTypeDefinition({
   nodes,

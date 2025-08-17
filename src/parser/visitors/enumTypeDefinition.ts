@@ -1,7 +1,7 @@
-import { VisitorFnArgs } from '@/parser/visitors/types';
+import type { VisitorFnArgs } from '@/parser/visitors/types';
 import { getLineNumberAtOffset, getNode } from '@/parser/utils';
-import { NodeField, SourceSnippet } from '@/parser/graphqlToReactFlow';
-import { EnumTypeDefinitionNode } from 'graphql/language';
+import type { EnumTypeDefinitionNode } from 'graphql';
+import type { NodeField, SourceSnippet } from '@/types';
 
 export function getEnumTypeDefinition({
   nodes,

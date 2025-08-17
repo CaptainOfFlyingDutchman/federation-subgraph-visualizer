@@ -1,4 +1,3 @@
-import type { SourceSnippet } from '@/parser/graphqlToReactFlow';
 import { useEffect, useRef } from 'react';
 
 import Prism from 'prismjs';
@@ -6,6 +5,7 @@ import 'prismjs/components/prism-graphql';
 import 'prismjs/themes/prism.css';
 import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
 import 'prismjs/plugins/line-numbers/prism-line-numbers.js';
+import type { SourceSnippet } from '@/types';
 
 export type SourceViewerProps = {
   code: SourceSnippet['code'];

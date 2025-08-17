@@ -10,21 +10,17 @@ import {
   type TypeNode,
 } from 'graphql';
 import type {
-  EdgeData,
   FieldSnippets,
+  GraphQLModule,
+  GroupEdge,
   NodeData,
   NodeField,
   SourceSnippet,
+  TransformedGraphQLModules,
   TypeSnippets,
-} from '@/parser/graphqlToReactFlow';
-import type { Edge, Node } from '@xyflow/react';
-import {
-  type GraphQLModule,
-  isXyFlowGroupNode,
-  type TransformedGraphQLModules,
-  type XyFlowEdge,
-  type XyFlowGroupNode,
-  type XyFlowNode,
+  XyFlowEdge,
+  XyFlowGroupNode,
+  XyFlowNode,
 } from '@/types';
 import { type DagreLayoutOptions, getLayoutedElements } from '@/parser/dagre';
 
@@ -61,7 +57,7 @@ export function pushUnique<T>(array: T[], item: T, key: (node: T) => string) {
 export function createNode(
   id: NameNode['value'],
   kind: NodeData['kind'],
-): Node<NodeData> {
+): XyFlowNode {
   return {
     id,
     type: customNodeType,
@@ -197,7 +193,7 @@ export function getLineNumberAtOffset(moduleSource: string, offset: number) {
 export function getNode(
   nodes: XyFlowNode[],
   id: string,
-): Node<NodeData> | undefined {
+): XyFlowNode | undefined {
   return nodes.find((n) => n.id === id);
 }
 
@@ -372,6 +368,12 @@ export type BuildGroupsForModulesFnReturn = {
   childNodes: XyFlowNode[];
 };
 
+export function isXyFlowGroupNode(
+  node: XyFlowNode | XyFlowGroupNode,
+): node is XyFlowGroupNode {
+  return node.type === customGroupNodeType;
+}
+
 export function buildGroupsForModules({
   graphModule,
   transformedModules,
@@ -462,12 +464,6 @@ export function buildGroupsForModules({
 export type ComputeGroupEdgesFnArgs = {
   transformedModules: TransformedGraphQLModules[];
   uniqueTypesFromEachModule: GetUniqueTypesFromEachModuleFnReturn['uniqueTypesFromEachModule'];
-};
-
-export type GroupEdge = {
-  id: string;
-  source: string;
-  target: string;
 };
 
 export type ComputeGroupEdgesFnReturn = {

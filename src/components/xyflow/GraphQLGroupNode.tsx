@@ -1,7 +1,8 @@
-import { Node, NodeProps, NodeResizer } from '@xyflow/react';
-import type { NodeData } from '@/parser/graphqlToReactFlow';
+import { type NodeProps, NodeResizer } from '@xyflow/react';
 
-export type GraphQLGroupNodeProps = NodeProps<Node<NodeData>>;
+import type { XyFlowNode } from '@/types';
+
+export type GraphQLGroupNodeProps = NodeProps<XyFlowNode>;
 
 export function GraphQLGroupNode({ data, selected }: GraphQLGroupNodeProps) {
   return (

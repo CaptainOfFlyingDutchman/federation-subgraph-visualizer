@@ -1,4 +1,4 @@
-import { VisitorFnArgs } from '@/parser/visitors/types';
+import type { VisitorFnArgs } from '@/parser/visitors/types';
 import {
   collectSourceSnippetForDefinition,
   createEdgeId,
@@ -9,8 +9,8 @@ import {
   markOutgoing,
   pushUnique,
 } from '@/parser/utils';
-import { NodeField, SourceSnippet } from '@/parser/graphqlToReactFlow';
-import { InputObjectTypeDefinitionNode } from 'graphql';
+import type { InputObjectTypeDefinitionNode } from 'graphql';
+import type { NodeField, SourceSnippet } from '@/types';
 
 export function getInputObjectTypeDefinition({
   nodes,

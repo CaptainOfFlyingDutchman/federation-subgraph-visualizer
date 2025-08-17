@@ -1,6 +1,6 @@
 import { createEdgeId, pushUnique } from '@/parser/utils';
-import { UnionTypeDefinitionNode } from 'graphql/language';
-import { VisitorFnArgs } from '@/parser/visitors/types';
+import type { UnionTypeDefinitionNode } from 'graphql';
+import type { VisitorFnArgs } from '@/parser/visitors/types';
 
 export function getUnionTypeDefinition({
   edges,

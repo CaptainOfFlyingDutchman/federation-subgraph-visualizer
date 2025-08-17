@@ -1,5 +1,9 @@
-import { XyFlowEdge, XyFlowNode } from '@/types';
-import { FieldSnippets, TypeSnippets } from '@/parser/graphqlToReactFlow';
+import type {
+  FieldSnippets,
+  TypeSnippets,
+  XyFlowEdge,
+  XyFlowNode,
+} from '@/types';
 
 export type VisitorFnArgs = {
   nodes: XyFlowNode[];

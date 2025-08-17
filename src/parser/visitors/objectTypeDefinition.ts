@@ -5,9 +5,9 @@ import {
   getNode,
   getTypeName,
 } from '@/parser/utils';
-import type { NodeField, SourceSnippet } from '@/parser/graphqlToReactFlow';
-import { ObjectTypeDefinitionNode } from 'graphql';
-import { VisitorFnArgs } from '@/parser/visitors/types';
+import type { ObjectTypeDefinitionNode } from 'graphql';
+import type { VisitorFnArgs } from '@/parser/visitors/types';
+import type { NodeField, SourceSnippet } from '@/types';
 
 export function getObjectTypeDefinition({
   nodes,

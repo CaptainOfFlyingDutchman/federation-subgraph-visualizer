@@ -1,11 +1,7 @@
 import path from 'node:path';
 import { readdir, readFile } from 'node:fs/promises';
-import {
-  buildReactFlowFromGraphQLModules,
-  FieldSnippets,
-  SourceSnippet,
-} from '@/parser/graphqlToReactFlow';
-import { type GraphQLModule } from '@/types';
+import { buildReactFlowFromGraphQLModules } from '@/parser/graphqlToReactFlow';
+import type { FieldSnippets, GraphQLModule, SourceSnippet } from '@/types';
 import { GraphQLVisualizer } from '@/components/xyflow/GraphQLVisualizer';
 import { SourceProvider } from '@/components/sourceViewer/SourceContext';
 

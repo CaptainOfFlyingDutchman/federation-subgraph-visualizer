@@ -7,7 +7,8 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type { SourceSnippet } from '@/parser/graphqlToReactFlow';
+
+import type { SourceSnippet } from '@/types';
 
 export type SourceTarget = {
   title: string;
