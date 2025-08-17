@@ -388,9 +388,9 @@ export function buildGroupsForModules({
       position: {
         x: n.position.x - minX + padding,
         y: n.position.y - minY + padding,
-        parentId: groupId,
-        extent: 'parent',
       },
+      parentId: groupId,
+      extent: 'parent',
     }));
 
   const minGroupWidth = 260;
