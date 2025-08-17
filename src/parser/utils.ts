@@ -413,6 +413,7 @@ export function buildGroupsForModules({
   const { laidoutNodes } = getLayoutedElements({
     nodes: baseChildNodesWithModuleMappedIds,
     edges: internalEdgesWithModuleMappedIds,
+    options: dagreLayoutOptions,
   });
 
   const xs = laidoutNodes.map((n) => n.position.x);

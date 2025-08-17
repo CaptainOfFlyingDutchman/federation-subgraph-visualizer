@@ -184,7 +184,7 @@ export function buildReactFlowFromGraphQLModules(
 
   const dagreLayoutOptions: Required<DagreLayoutOptions> = {
     nodeWidth: 220,
-    nodeHeight: 80,
+    nodeHeight: 300,
     rankDir: 'LR',
     rankSep: 80,
     nodeSep: 40,
