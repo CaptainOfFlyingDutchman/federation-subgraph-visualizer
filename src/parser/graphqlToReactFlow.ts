@@ -1,17 +1,28 @@
 import {
   type DocumentNode,
+  Location,
   type NameNode,
   parse,
   Source,
-  Location,
   type TypeDefinitionNode,
   visit,
 } from 'graphql';
 import type { Edge, Node } from '@xyflow/react';
 
-import type { GraphQLModule, XyFlowNodesAndEdges } from '@/types';
+import type {
+  BuildReactFlowFromDocumentFnReturn,
+  GraphQLModule,
+  TransformedGraphQLModules,
+  XyFlowEdge,
+  XyFlowGroupNode,
+  XyFlowNode,
+} from '@/types';
 import {
+  applyOutgoingFlagsToNodes,
+  buildGroupsForModules,
   collectSourceSnippetForDefinition,
+  computeFieldOutgoingFlags,
+  computeGroupEdges,
   createEdgeId,
   createNode,
   createNodesEdge,
@@ -20,8 +31,13 @@ import {
   getNodeKind,
   getTargetNodeName,
   getTypeName,
+  getUniqueTypesFromEachModule,
+  layoutModuleGroups,
+  mergeNodesAcrossModules,
   pushUnique,
+  remapEdgesToNamespaceIds,
 } from '@/parser/utils';
+import { DagreLayoutOptions } from '@/parser/dagre';
 
 export type SourceSnippet = {
   moduleName: GraphQLModule['name'];
@@ -62,14 +78,9 @@ export type EdgeData = {
   argument?: NameNode['value'];
 };
 
-type BuildReactFlowFromDocumentReturn = XyFlowNodesAndEdges & {
-  typeSnippets: TypeSnippets;
-  fieldSnippets: FieldSnippets;
-};
-
 export function buildReactFlowFromDocument(
   documentNode: DocumentNode,
-): BuildReactFlowFromDocumentReturn {
+): BuildReactFlowFromDocumentFnReturn {
   const nodes: Node<NodeData>[] = [];
   const edges: Edge<EdgeData>[] = [];
 
@@ -472,9 +483,6 @@ export function buildReactFlowFromDocument(
   };
 }
 
-export type TransformedGraphQLModules = GraphQLModule &
-  BuildReactFlowFromDocumentReturn;
-
 export function buildReactFlowFromGraphQLModules(
   graphqlModules: GraphQLModule[],
 ) {
@@ -520,12 +528,69 @@ export function buildReactFlowFromGraphQLModules(
     }
   });
 
-  return [
-    {
-      nodes: transformedModules[0].nodes,
-      edges: transformedModules[0].edges,
-      typeSnippets: mergedTypeSnippets,
-      fieldSnippets: mergedFieldSnippets,
-    },
-  ];
+  const { uniqueTypesFromEachModule } =
+    getUniqueTypesFromEachModule(transformedModules);
+
+  const allNodes: (XyFlowNode | XyFlowGroupNode)[] = [];
+  const allEdges: XyFlowEdge[] = [];
+
+  const dagreLayoutOptions: Required<DagreLayoutOptions> = {
+    nodeWidth: 220,
+    nodeHeight: 80,
+    rankDir: 'LR',
+    rankSep: 80,
+    nodeSep: 40,
+    edgeSep: 10,
+  };
+
+  const { mergedNodesAcrossModules } =
+    mergeNodesAcrossModules(transformedModules);
+
+  const graphqlModulesGroups = graphqlModules.map((graphModule) =>
+    buildGroupsForModules({
+      graphModule,
+      transformedModules,
+      uniqueTypesFromEachModule,
+      mergedNodesAcrossModules,
+      dagreLayoutOptions,
+    }),
+  );
+
+  const { groupEdges } = computeGroupEdges({
+    transformedModules,
+    uniqueTypesFromEachModule,
+  });
+
+  const groupNodes = graphqlModulesGroups.map((n) => n.groupNode);
+  const { groupNodePositions } = layoutModuleGroups({
+    groupNodes,
+    groupEdges,
+    dagreLayoutOptions,
+  });
+
+  graphqlModulesGroups.forEach((group) => {
+    group.groupNode.position = groupNodePositions.get(group.groupId) || {
+      x: 0,
+      y: 0,
+    };
+    allNodes.push(group.groupNode, ...group.childNodes);
+  });
+
+  const { remappedEdges } = remapEdgesToNamespaceIds({
+    transformedModules,
+    uniqueTypesFromEachModule,
+  });
+
+  allEdges.push(...remappedEdges);
+
+  const { outgoingNodesNames } = computeFieldOutgoingFlags(allEdges);
+
+  applyOutgoingFlagsToNodes(allNodes, outgoingNodesNames);
+
+  return {
+    nodes: allNodes,
+    edges: allEdges,
+    typeSnippets: mergedTypeSnippets,
+    fieldSnippets: mergedFieldSnippets,
+  };
 }

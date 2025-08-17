@@ -15,8 +15,13 @@ async function readSDLs() {
     file.endsWith('.graphql'),
   );
 
+  const sortedFiles = [
+    'users.graphql',
+    ...schemaFiles.filter((file) => file !== 'users.graphql'),
+  ];
+
   const contents = await Promise.all(
-    schemaFiles.map(async (file): Promise<GraphQLModule> => {
+    sortedFiles.map(async (file): Promise<GraphQLModule> => {
       return {
         name: file.replace(/\.graphql$/, ''),
         sdl: await readFile(path.join(schemasDir, file), 'utf8'),
@@ -31,22 +36,24 @@ export default async function GraphQLDSLVisualizer() {
   const graphQLModules = await readSDLs();
   const graphNodes = buildReactFlowFromGraphQLModules(graphQLModules);
 
-  console.log(
-    'Graph::: typeSnippets ',
-    JSON.stringify(Array.from(graphNodes[0].typeSnippets), null, 2),
-  );
+  // console.log(
+  //   'Graph::: typeSnippets ',
+  //   JSON.stringify(Array.from(graphNodes[0].typeSnippets), null, 2),
+  // );
+  //
+  // console.log(
+  //   'Graph::: fieldSnippets',
+  //   JSON.stringify(deepMapToObject(graphNodes[0].fieldSnippets), null, 2),
+  // );
 
-  console.log(
-    'Graph::: fieldSnippets',
-    JSON.stringify(deepMapToObject(graphNodes[0].fieldSnippets), null, 2),
-  );
+  console.log({
+    nodes: graphNodes.nodes,
+    edges: graphNodes.edges,
+  });
 
   return (
     <SourceProvider>
-      <GraphQLVisualizer
-        nodes={graphNodes[0].nodes}
-        edges={graphNodes[0].edges}
-      />
+      <GraphQLVisualizer nodes={graphNodes.nodes} edges={graphNodes.edges} />
     </SourceProvider>
   );
 }

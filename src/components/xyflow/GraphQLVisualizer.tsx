@@ -1,6 +1,6 @@
 'use client';
 
-import type { XyFlowNodesAndEdges } from '@/types';
+import type { XyFlowGroupNode, XyFlowNode, XyFlowNodesAndEdges } from '@/types';
 import {
   Background,
   Controls,
@@ -11,14 +11,19 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { customNodeType } from '@/parser/utils';
+import { customGroupNodeType, customNodeType } from '@/parser/utils';
 import { GraphQLNode } from '@/components/xyflow/GraphQLNode';
 import { SourceDrawer } from '@/components/sourceViewer/SourceDrawer';
+import { GraphQLGroupNode } from '@/components/xyflow/GraphQLGroupNode';
 
-export type GraphQLVisualizerProps = XyFlowNodesAndEdges;
+export type GraphQLVisualizerProps = {
+  nodes: (XyFlowNode | XyFlowGroupNode)[];
+  edges: XyFlowNodesAndEdges['edges'];
+};
 
 const nodeTypes: NodeTypes = {
   [customNodeType]: GraphQLNode,
+  [customGroupNodeType]: GraphQLGroupNode,
 };
 
 export function GraphQLVisualizer({ nodes, edges }: GraphQLVisualizerProps) {

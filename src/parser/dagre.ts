@@ -1,4 +1,4 @@
-import type { XyFlowEdge, XyFlowNode } from '@/types';
+import type { XyFlowEdge, XyFlowGroupNode, XyFlowNode } from '@/types';
 import dagre from 'dagre';
 
 export type DagreLayoutOptions = {
@@ -20,16 +20,20 @@ const defaultDagreLayoutOptions: DagreLayoutOptions = {
 };
 
 export type GetLayoutedElementsFnArgs = {
-  nodes: XyFlowNode[];
+  nodes: (XyFlowNode | XyFlowGroupNode)[];
   edges: XyFlowEdge[];
   options?: DagreLayoutOptions;
+};
+
+export type GetLayoutedElementsFnReturn = {
+  laidoutNodes: (XyFlowNode | XyFlowGroupNode)[];
 };
 
 export function getLayoutedElements({
   nodes,
   edges,
   options = {},
-}: GetLayoutedElementsFnArgs) {
+}: GetLayoutedElementsFnArgs): GetLayoutedElementsFnReturn {
   const dagreLayoutOptions: DagreLayoutOptions = {
     ...defaultDagreLayoutOptions,
     ...options,
@@ -64,7 +68,7 @@ export function getLayoutedElements({
 
   dagre.layout(g);
 
-  nodes.map((node) => {
+  const laidoutNodes = nodes.map((node) => {
     const dagreNode = g.node(node.id) as dagre.Node;
 
     const { width, height } = node.measured ?? {
@@ -80,4 +84,8 @@ export function getLayoutedElements({
       position: { x, y },
     };
   });
+
+  return {
+    laidoutNodes,
+  };
 }
