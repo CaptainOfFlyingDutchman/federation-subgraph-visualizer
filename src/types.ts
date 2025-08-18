@@ -47,7 +47,11 @@ export type EdgeData = {
   argument?: NameNode['value'];
 };
 
-export type XyFlowGroupNode = Node<Pick<NodeData, 'label'>>;
+export type XyFlowGroupNode = Node<
+  Pick<NodeData, 'label'> & {
+    collapsed?: boolean;
+  }
+>;
 
 export type XyFlowNode = Node<NodeData>;
 
