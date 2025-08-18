@@ -30,11 +30,11 @@ async function readSDLs() {
 
 export default async function GraphQLDSLVisualizer() {
   const graphQLModules = await readSDLs();
-  const graphNodes = buildReactFlowFromGraphQLModules(graphQLModules);
+  const xyFlowGraph = buildReactFlowFromGraphQLModules(graphQLModules);
 
   return (
     <SourceProvider>
-      <GraphQLVisualizer nodes={graphNodes.nodes} edges={graphNodes.edges} />
+      <GraphQLVisualizer nodes={xyFlowGraph.nodes} edges={xyFlowGraph.edges} />
     </SourceProvider>
   );
 }
