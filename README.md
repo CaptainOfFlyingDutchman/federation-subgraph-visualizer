@@ -97,6 +97,10 @@ The visualizer will render module groups and draw edges based on field and argum
 - Changes are not visible: ensure your .graphql files are saved in src/schemas and refresh the page.
 - Node version issues: upgrade to Node 18 or 20 LTS.
 
+## TODO
+
+- [ ] Expand/collapse group nodes
 
 ## Screenshot
+
 ![screenshot.png](screenshot.png)
