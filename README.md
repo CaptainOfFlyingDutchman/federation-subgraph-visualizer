@@ -99,7 +99,7 @@ The visualizer will render module groups and draw edges based on field and argum
 
 ## TODO
 
-- [ ] Expand/collapse group nodes
+- [x] Expand/collapse group nodes
 
 ## Screenshot
 
