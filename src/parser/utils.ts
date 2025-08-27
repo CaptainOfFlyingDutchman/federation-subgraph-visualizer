@@ -481,7 +481,7 @@ export function computeGroupEdges({
       const edgeTarget = uniqueTypesFromEachModule.get(edge.target);
 
       if (edgeSource && edgeTarget) {
-        uniqueEdges.add(`group-${edgeSource}->$group-{edgeTarget}`);
+        uniqueEdges.add(`group-${edgeSource}->group-${edgeTarget}`);
       }
     });
   });
@@ -525,10 +525,10 @@ export function layoutModuleGroups({
   const groupNodePositions: LayoutModuleGroupsFnReturn['groupNodePositions'] =
     new Map();
 
-  laidoutNodes.forEach((groupNode) => {
+  laidoutNodes.forEach((groupNode, i) => {
     groupNodePositions.set(groupNode.id, {
       x: groupNode.position.x,
-      y: groupNode.position.y,
+      y: groupNode.position.y + i * 400,
     });
   });
 
